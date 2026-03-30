@@ -98,6 +98,13 @@ https://yourdomain.com/testimonials-widget.html
 Paste an `<iframe>` tag wherever you want testimonials to appear:
 
 ```html
+Real example
+<iframe src="https://mashauri.org/tools/testimonials-widget.html?tags=CRG+BBS"
+        width="100%" height="600" frameborder="0" scrolling="yes">
+</iframe>
+
+
+
 <!-- All testimonials -->
 <iframe src="https://yourdomain.com/testimonials-widget.html"
         width="100%" height="600" frameborder="0" scrolling="no">
