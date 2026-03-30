@@ -164,6 +164,26 @@
       max-width: 720px;
       margin: 0 auto;
     }
+    /* Horizontal scroll layout */
+    .t-grid.scroll {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 20px;
+      padding-bottom: 14px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      cursor: grab;
+    }
+    .t-grid.scroll:active { cursor: grabbing; }
+    .t-grid.scroll .t-card {
+      flex-shrink: 0;
+      width: 300px;
+      scroll-snap-align: start;
+    }
+    .t-grid.scroll::-webkit-scrollbar { height: 5px; }
+    .t-grid.scroll::-webkit-scrollbar-track { background: var(--border, #e5e7eb); border-radius: 3px; }
+    .t-grid.scroll::-webkit-scrollbar-thumb { background: var(--accent, #2563eb); border-radius: 3px; }
 
     /* ── CARD ──────────────────────────────────────────────── */
     .t-card {
@@ -181,6 +201,29 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.10);
       transform: translateY(-2px);
     }
+
+    /* ── ADMIN HINT ────────────────────────────────────────── */
+    .t-admin-hint {
+      position: fixed;
+      bottom: 12px;
+      right: 14px;
+      z-index: 999;
+    }
+    .t-admin-hint a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--border, #e5e7eb);
+      color: var(--meta-text, #9ca3af);
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0.35;
+      transition: opacity 0.2s;
+    }
+    .t-admin-hint a:hover { opacity: 1; }
 
     /* ── STARS ─────────────────────────────────────────────── */
     .t-stars { display: flex; gap: 3px; }
@@ -254,6 +297,10 @@
   <div id="app"><p class="t-status loading">Loading testimonials</p></div>
   <!-- Hidden file input for CSV import -->
   <input type="file" id="csv-input" accept=".csv,text/csv" style="display:none" />
+  <!-- Discreet admin link — click the gear to open the admin panel -->
+  <div class="t-admin-hint" id="admin-hint" style="display:none">
+    <a href="?admin=true" title="Open admin panel">⚙</a>
+  </div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -279,7 +326,7 @@ const CONFIG = {
   // ── Brand accent colour ────────────────────────────────────
   accentColor: '#2563eb',
 
-  // ── Default layout: 'grid' or 'list' ──────────────────────
+  // ── Default layout: 'grid', 'scroll' (horizontal), or 'list' ─
   defaultLayout: 'grid',
 
 };
@@ -297,7 +344,7 @@ const limit      = parseInt(p.get('limit'))      || 0;
 const minRating  = parseInt(p.get('min_rating')) || 1;
 const shuffle    = p.get('shuffle') === 'true';
 const theme      = p.get('theme')   || 'light';
-const showGuide  = urlTags.length === 0; // guide panel only shows when no tag filter in URL
+const showGuide  = p.get('admin') === 'true'; // guide panel only shows when ?admin=true is in the URL
 
 // Apply theme + accent colour
 if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -490,15 +537,16 @@ function renderCard(t) {
    buttons to submit via Google Form or import a CSV.
    ──────────────────────────────────────────────────────────────── */
 function renderGuidePanel(allTags) {
+  // "All" chip is always first — active when no tag filter is set
+  const allChip = `<button class="t-guide-chip${activeChipTag === null ? ' active' : ''}"
+    data-tag="" onclick="handleChipClick(this)">All</button>`;
+
   const chipHtml = allTags.map(tag => {
     const isActive = activeChipTag === tag;
+    // Use data-tag so tag names with quotes/special chars don't break the attribute
     return `<button class="t-guide-chip${isActive ? ' active' : ''}"
-      onclick="filterByChip(${JSON.stringify(tag)})">${esc(tag)}</button>`;
+      data-tag="${esc(tag)}" onclick="handleChipClick(this)">${esc(tag)}</button>`;
   }).join('');
-
-  const clearBtn = activeChipTag
-    ? `<button class="t-clear-btn" onclick="filterByChip(null)">✕ Clear filter</button>`
-    : '';
 
   const formBtn = CONFIG.googleFormUrl
     ? `<a href="${esc(CONFIG.googleFormUrl)}" target="_blank" rel="noopener" class="t-action-btn primary">
@@ -514,8 +562,8 @@ function renderGuidePanel(allTags) {
   <div class="t-guide-section">
     <div class="t-guide-title">Tags in this collection</div>
     <div class="t-guide-tags">
+      ${allChip}
       ${chipHtml}
-      ${clearBtn}
     </div>
   </div>
 
@@ -607,12 +655,18 @@ function renderGrid(items) {
   if (!displayed.length) {
     grid.innerHTML = `<p class="t-status">No testimonials found${activeChipTag ? ` for "${activeChipTag}"` : ''}.</p>`;
   } else {
-    const listClass = layout === 'list' ? ' list' : '';
-    grid.innerHTML = `<div class="t-grid${listClass}">${displayed.map(renderCard).join('\n')}</div>`;
+    const layoutClass = layout === 'list' ? ' list' : layout === 'scroll' ? ' scroll' : '';
+    grid.innerHTML = `<div class="t-grid${layoutClass}">${displayed.map(renderCard).join('\n')}</div>`;
   }
 
   // Notify parent of new height
   try { window.parent.postMessage({ type: 'testimonials-height', height: document.body.scrollHeight }, '*'); } catch(_) {}
+}
+
+function handleChipClick(el) {
+  // data-tag="" means "All"; anything else is a specific tag
+  const tag = el.dataset.tag;
+  filterByChip(tag === '' ? null : tag);
 }
 
 function filterByChip(tag) {
@@ -691,6 +745,12 @@ async function init() {
       (File → Share → Publish to web → CSV).<br>
       <small style="opacity:0.7">${esc(err.message)}</small>
     </p>`;
+  }
+
+  // Show the discreet gear icon whenever the admin panel is not already open
+  if (!showGuide) {
+    const hint = document.getElementById('admin-hint');
+    if (hint) hint.style.display = 'block';
   }
 }
 
