@@ -98,6 +98,8 @@ https://yourdomain.com/testimonials-widget.html
 Paste an `<iframe>` tag wherever you want testimonials to appear:
 
 ```html
+
+Best testimonial -= horizonal scrolling - change the height to increase the nmer of testimonials
 <!-- All testimonials -->
 <iframe src="https://yourdomain.com/testimonials-widget.html"
         width="100%" height="600" frameborder="0" scrolling="no">
