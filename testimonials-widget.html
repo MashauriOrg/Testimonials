@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testimonials</title>
+  <style>
+    /* ── RESET & BASE ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: transparent;
+      color: var(--text, #1a1a2e);
+      padding: 16px;
+      min-height: 100px;
+    }
+
+    /* ── GRID ──────────────────────────────────────────────── */
+    .t-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+    .t-grid.list {
+      grid-template-columns: 1fr;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ── CARD ──────────────────────────────────────────────── */
+    .t-card {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .t-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+      transform: translateY(-2px);
+    }
+
+    /* ── STARS ─────────────────────────────────────────────── */
+    .t-stars {
+      display: flex;
+      gap: 3px;
+    }
+    .t-star {
+      width: 17px;
+      height: 17px;
+      color: var(--star-color, #f59e0b);
+      flex-shrink: 0;
+    }
+    .t-star.empty {
+      color: var(--star-empty, #d1d5db);
+    }
+
+    /* ── QUOTE ─────────────────────────────────────────────── */
+    .t-quote-wrap {
+      position: relative;
+      flex: 1;
+    }
+    .t-open-quote {
+      font-family: Georgia, serif;
+      font-size: 52px;
+      line-height: 1;
+      color: var(--accent, #2563eb);
+      opacity: 0.18;
+      position: absolute;
+      top: -8px;
+      left: -4px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .t-quote {
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: var(--quote-text, #374151);
+      padding-left: 18px;
+    }
+
+    /* ── DIVIDER ───────────────────────────────────────────── */
+    .t-divider {
+      height: 1px;
+      background: var(--border, #e5e7eb);
+      margin: 0;
+    }
+
+    /* ── AUTHOR ────────────────────────────────────────────── */
+    .t-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .t-avatar-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: var(--accent, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .t-avatar-wrap img {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+    }
+    .t-initials {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .t-author-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .t-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text, #111827);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .t-name a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .t-name a:hover {
+      color: var(--accent, #2563eb);
+      text-decoration: underline;
+    }
+    .t-role-line {
+      font-size: 12px;
+      color: var(--meta-text, #6b7280);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    .t-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .t-date {
+      font-size: 11px;
+      color: var(--meta-text, #9ca3af);
+      flex-shrink: 0;
+    }
+    .t-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .t-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--tag-bg, #eff6ff);
+      color: var(--tag-text, #2563eb);
+      letter-spacing: 0.2px;
+    }
+
+    /* ── STATUS MESSAGES ───────────────────────────────────── */
+    .t-status {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--meta-text, #9ca3af);
+      font-size: 14px;
+    }
+    .t-status.error {
+      color: #dc2626;
+    }
+    .t-status.loading::after {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--accent, #2563eb);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DARK THEME ────────────────────────────────────────── */
+    [data-theme="dark"] body {
+      --text:       #f1f5f9;
+      --card-bg:    #1e293b;
+      --border:     #334155;
+      --quote-text: #cbd5e1;
+      --meta-text:  #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"><p class="t-status loading">Loading testimonials</p></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIGURATION  —  edit the values in this block
+   ═══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+
+  // Your Google Sheet published CSV URL:
+  sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlWI-IfT3SQO7eIUa5VVMYLVcGHaa6iB-S-4kGvWUjCtjXZzTT6lK0yJKTThwa1mg_koXSS7Ho2fOk/pub?output=csv',
+
+  // Brand accent colour — used for stars, quote mark, tags, avatar background
+  accentColor: '#2563eb',
+
+  // Default layout when ?layout= is not in the URL: 'grid' or 'list'
+  defaultLayout: 'grid',
+
+};
+/* ═══════════════════════════════════════════════════════════════ */
+
+
+/* ── URL PARAMETERS ─────────────────────────────────────────────
+   Control each embed independently via query string, e.g.:
+     ?tags=Boot+camp,2023&limit=3&layout=list&shuffle=true&theme=dark
+   ──────────────────────────────────────────────────────────────── */
+const p          = new URLSearchParams(window.location.search);
+const filterTags = (p.get('tags') || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+const layout     = p.get('layout')     || CONFIG.defaultLayout;
+const limit      = parseInt(p.get('limit'))      || 0;
+const minRating  = parseInt(p.get('min_rating')) || 1;
+const shuffle    = p.get('shuffle') === 'true';
+const theme      = p.get('theme')   || 'light';
+
+// Apply theme + accent colour as CSS custom properties
+if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+const r = document.documentElement.style;
+r.setProperty('--accent',   CONFIG.accentColor);
+r.setProperty('--tag-bg',   CONFIG.accentColor + '1a');
+r.setProperty('--tag-text', CONFIG.accentColor);
+r.setProperty('--star-color','#f59e0b');
+
+
+/* ── CSV PARSER ─────────────────────────────────────────────────
+   Handles quoted fields, commas inside quotes, escaped quotes ("")
+   ──────────────────────────────────────────────────────────────── */
+function parseCSV(raw) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i], nx = raw[i + 1];
+    if (inQ) {
+      if      (c === '"' && nx === '"') { field += '"'; i++; }
+      else if (c === '"')               { inQ = false; }
+      else                              { field += c; }
+    } else {
+      if      (c === '"')  { inQ = true; }
+      else if (c === ',')  { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; }
+      else if (c !== '\r') { field += c; }
+    }
+  }
+  // flush last row
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(f => f.trim() !== ''));
+}
+
+
+/* ── MAP ROWS → OBJECTS ─────────────────────────────────────────
+   Maps your Google Sheet columns (Senja export format) to the
+   internal fields used by the widget.
+   Column names are matched case-insensitively so renames are safe.
+   ──────────────────────────────────────────────────────────────── */
+function mapRows(rows) {
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  const col = k => headers.indexOf(k);
+
+  // Senja export column → widget field
+  const C = {
+    name:        col('customer_name'),       // person's full name
+    role:        col('customer_tagline'),    // job title / role
+    institution: col('customer_company'),   // organisation / institution
+    quote:       col('text'),               // testimonial text
+    photo:       col('customer_avatar'),    // headshot URL
+    rating:      col('rating'),             // 1–5 stars
+    date:        col('date'),               // date received
+    email:       col('customer_email'),     // email (stored, not displayed)
+    website:     col('customer_url'),       // their website (name links here)
+    tags:        col('tags'),               // comma-separated tags
+  };
+
+  return rows.slice(1).map(r => ({
+    name:        (r[C.name]        || '').trim(),
+    role:        (r[C.role]        || '').trim(),
+    institution: (r[C.institution] || '').trim(),
+    quote:       (r[C.quote]       || '').trim(),
+    photo:       (r[C.photo]       || '').trim(),
+    rating:      parseFloat(r[C.rating]) || 0,
+    date:        (r[C.date]        || '').trim(),
+    email:       (r[C.email]       || '').trim(),
+    website:     (r[C.website]     || '').trim(),
+    tags:        (r[C.tags]        || '').split(',').map(t => t.trim()).filter(Boolean),
+  })).filter(t => t.quote); // skip rows without a quote
+}
+
+
+/* ── RENDER HELPERS ─────────────────────────────────────────────  */
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function starSVG(filled) {
+  const cls = filled ? 't-star' : 't-star empty';
+  return `<svg class="${cls}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969
+    0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755
+    1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539
+    -1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461
+    a1 1 0 00.951-.69l1.07-3.292z"/>
+  </svg>`;
+}
+
+function renderStars(n) {
+  const full = Math.round(Math.min(5, Math.max(0, n)));
+  return Array.from({length: 5}, (_, i) => starSVG(i < full)).join('');
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+}
+
+function renderAvatar(t) {
+  if (t.photo) {
+    // onerror falls back to initials
+    const ini = initials(t.name);
+    return `<div class="t-avatar-wrap">
+      <img src="${esc(t.photo)}" alt="${esc(t.name)}"
+           onerror="this.parentElement.innerHTML='<span class=\\'t-initials\\'>${ini}</span>'" />
+    </div>`;
+  }
+  return `<div class="t-avatar-wrap"><span class="t-initials">${initials(t.name)}</span></div>`;
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  // Handle Senja timestamp format: "2024-03-15 00:00:00+00" → strip time portion
+  const datePart = d.replace(/\s+\d{2}:\d{2}:\d{2}.*$/, '').trim();
+  const parsed = new Date(datePart);
+  if (isNaN(parsed.getTime())) return d;
+  return parsed.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+}
+
+function renderCard(t) {
+  const roleLine = [t.role, t.institution].filter(Boolean).join(' · ');
+  const nameInner = t.website
+    ? `<a href="${esc(t.website)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}</a>`
+    : esc(t.name);
+
+  const starsHtml  = t.rating >= 1
+    ? `<div class="t-stars" aria-label="${t.rating} out of 5 stars">${renderStars(t.rating)}</div>` : '';
+  const footerDate = formatDate(t.date);
+  const tagsHtml   = t.tags.map(tag => `<span class="t-tag">${esc(tag)}</span>`).join('');
+  const hasFooter  = footerDate || t.tags.length;
+
+  return `
+<article class="t-card">
+  ${starsHtml}
+  <div class="t-quote-wrap">
+    <span class="t-open-quote" aria-hidden="true">"</span>
+    <p class="t-quote">${esc(t.quote)}</p>
+  </div>
+  <div class="t-divider"></div>
+  <div class="t-author">
+    ${renderAvatar(t)}
+    <div class="t-author-info">
+      <div class="t-name">${nameInner}</div>
+      ${roleLine ? `<div class="t-role-line">${esc(roleLine)}</div>` : ''}
+    </div>
+  </div>
+  ${hasFooter ? `
+  <div class="t-footer">
+    <span class="t-date">${esc(footerDate)}</span>
+    <div class="t-tags">${tagsHtml}</div>
+  </div>` : ''}
+</article>`;
+}
+
+
+/* ── MAIN ───────────────────────────────────────────────────────── */
+async function init() {
+  const app = document.getElementById('app');
+
+  // Guard: sheet URL not configured
+  if (!CONFIG.sheetUrl || CONFIG.sheetUrl.trim() === '' || CONFIG.sheetUrl.includes('YOUR_PUBLISHED')) {
+    app.innerHTML = `<p class="t-status error">
+      ⚠️ Setup needed: paste your Google Sheet CSV URL into the <code>CONFIG.sheetUrl</code>
+      value near the top of this file.
+    </p>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(CONFIG.sheetUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    const text = await res.text();
+    let items = mapRows(parseCSV(text));
+
+    // 1. Filter by tags (any matching tag qualifies)
+    if (filterTags.length) {
+      items = items.filter(t =>
+        t.tags.some(tag => filterTags.includes(tag.toLowerCase()))
+      );
+    }
+
+    // 2. Minimum star rating
+    if (minRating > 1) {
+      items = items.filter(t => t.rating >= minRating);
+    }
+
+    // 3. Shuffle
+    if (shuffle) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+    }
+
+    // 4. Limit
+    if (limit > 0) items = items.slice(0, limit);
+
+    if (!items.length) {
+      app.innerHTML = `<p class="t-status">No testimonials found${filterTags.length ? ' for the selected tags' : ''}.</p>`;
+    } else {
+      const listClass = layout === 'list' ? ' list' : '';
+      app.innerHTML = `<div class="t-grid${listClass}">${items.map(renderCard).join('\n')}</div>`;
+    }
+
+  } catch (err) {
+    app.innerHTML = `<p class="t-status error">
+      Could not load testimonials. Make sure your sheet is published publicly (File → Share → Publish to web → CSV).<br>
+      <small style="opacity:0.7">${esc(err.message)}</small>
+    </p>`;
+  }
+
+  // Notify parent page of rendered height (enables auto-resize iframe)
+  try {
+    window.parent.postMessage(
+      { type: 'testimonials-height', height: document.body.scrollHeight },
+      '*'
+    );
+  } catch(_) {}
+}
+
+init();
+</script>
+</body>
+</html>
